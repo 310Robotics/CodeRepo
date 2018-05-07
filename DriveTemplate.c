@@ -103,9 +103,19 @@ task pre_auton(){
 	const short leftButton = 1;
 	const short centerButton = 2;
 	const short rightButton = 4;
+	const short leftRightButtons = 6;
+	bool select = false; //changed to true every time center button is pressed
 
-	int maxDisplay = 4;
+	int maxSensorDisplays = 4;
+	int maxVarsDisplays = 4;
+	int maxAutonDisplays = 4;
 	int currentDisplay = 0;
+	
+	int maxModes = 2;
+	int currentMode = 0;
+	const short SensorMode = 0;
+	const short VarsMode = 1;
+	const short AutonMode = 2;
 
 	displayLCDCenteredString (0, "Starting...");
 	wait1Msec(1000);
@@ -113,19 +123,88 @@ task pre_auton(){
 	clearLCDLine(1);
 
 	while (bIfiRobotDisabled == 1) {
+		select = false;
 		if (nLCDButtons == leftButton){
 			currentDisplay--;
-			currentDisplay = currentDisplay % maxDisplay;
+			currentDisplay = currentDisplay % maxDisplays;
 			wait1Msec(250);
 		}
 		if (nLCDButtons == rightButton){
 			currentDisplay++;
-			currentDisplay = currentDisplay % maxDisplay;
+			currentDisplay = currentDisplay % maxDisplays;
 			wait1Msec(250);
 		}
-
+		if (nLCDButtons == centerButton){
+			select = true;
+		}
+		if (nLCDButtons == leftRightButtons){
+			currentDisplay = 0;
+			currentMode++;
+			currentMode = currentMode % maxModes;
+			switch(currentMode){
+				case SensorMode:
+					displayLCDCenteredString(0, "|Sensors|");
+					wait1Msec(500);
+					break;
+				case VarsMode:
+					displayLCDCenteredString(0, "|Global Vars|");
+					wait1Msec(500);
+					break;
+				case AutonMode:
+					displayLCDCneteredString(0, "|Auton Selector|");
+					wait1Msec(500);
+					break;
+				default:
+					//do nothing
+			}
+		}
+		switch(currentMode){
+			case SensorMode:
+				switch(currentDisplay){
+					case 0:
+						break;
+					case 1:
+						break;
+					case 2:
+						break;
+					case 3:
+						break;
+					default:
+						break;
+				}
+				break;
+			case VarsMode:
+				switch(currentDisplay){
+					case 0:
+						break;
+					case 1:
+						break;
+					case 2:
+						break;
+					case 3:
+						break;
+					default:
+						break;
+				}
+				break;
+			case AutonMode:
+				switch(currentDisplay){
+					case 0:
+						break;
+					case 1:
+						break;
+					case 2:
+						break;
+					case 3:
+						break;
+					default:
+						break;
+				}
+				break;
+			default:
+				//do nothing
+		}
 	}
-
 	clearLCDLine(0);
 	clearLCDLine(1);
 	bLCDBacklight = false;
