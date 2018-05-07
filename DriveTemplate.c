@@ -6,10 +6,13 @@
 
 /*
 TODO:
-= add PID for stabilizing speeds for both drive tasks
+= add P (or PI) controller for stabilizing speeds for both drive tasks
+= add integral gain to
 = full pre-auton LCD selection screen
 = methods for moving robot forward and turning via encoderPIDController, static constant float for configuring ticks per inch
-=
+= motor slew rate task:
+	+ https://www.vexforum.com/index.php/6146-robotc-programming-tips/p2#p53799
+	+ https://renegaderobotics.org/what-is-slew-rate/
 */
 
 /*
@@ -52,51 +55,62 @@ task toggleDrive(){
 }
 
 /*
-General use proportional controller for drive motors.
+Proportional gain controller for drive motors.
 You can set desired encoder values using
 */
 task encoderPIDController()
 {
+	//intialize error and drive power vars
 	float pidErrorLeft;
 	float pidErrorRight;
 	float pidDriveLeft;
 	float pidDriveRight;
 
 	while(true){
+		//error = desired value - current value
 		pidErrorLeft = pidRequestedValueLB - SensorValue[leftEncoder];
 		pidErrorRight = pidRequestedValueRB - SensorValue[rightEncoder];
 
+		//drive power = proportional constant * error
 		pidDriveLeft = (pid_Kp * pidErrorLeft);
 		pidDriveRight = (pid_Kp * pidErrorRight);
 
+		//limit drive power
 		if( pidDriveLeft > 127 )
 			pidDriveLeft = 127;
 		if( pidDriveLeft < (-127) )
 			pidDriveLeft = (-127);
-
 		if( pidDriveRight > 127 )
 			pidDriveRight = 127;
 		if( pidDriveRight < (-127) )
 			pidDriveRight = (-127);
 
+		//run motors at calculated power
 		motor[LB] = pidDriveLeft;
 		motor[RB] = pidDriveRight;
+
+		//don't hog CPU
 		wait1Msec( 25 );
 	}
 }
 
+/*
+Pre-auton includes has an LCD menu that allows
+*/
 task pre_auton(){
 	bLCDBacklight = true;
+
 	const short leftButton = 1;
 	const short centerButton = 2;
 	const short rightButton = 4;
 
 	int maxDisplay = 4;
-	int currentDisplay = 1;
+	int currentDisplay = 0;
 
 	displayLCDCenteredString (0, "Starting...");
 	wait1Msec(1000);
 	clearLCDLine(0);
+	clearLCDLine(1);
 
 	while (bIfiRobotDisabled == 1) {
 		if (nLCDButtons == leftButton){
@@ -109,8 +123,11 @@ task pre_auton(){
 			currentDisplay = currentDisplay % maxDisplay;
 			wait1Msec(250);
 		}
+
 	}
 
+	clearLCDLine(0);
+	clearLCDLine(1);
 	bLCDBacklight = false;
 }
 
