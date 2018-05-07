@@ -109,8 +109,10 @@ task pre_auton(){
 	int maxSensorDisplays = 4;
 	int maxVarsDisplays = 4;
 	int maxAutonDisplays = 4;
+	int maxDisplays = maxSensorDisplays;
 	int currentDisplay = 0;
-	
+
+
 	int maxModes = 2;
 	int currentMode = 0;
 	const short SensorMode = 0;
@@ -124,6 +126,7 @@ task pre_auton(){
 
 	while (bIfiRobotDisabled == 1) {
 		select = false;
+
 		if (nLCDButtons == leftButton){
 			currentDisplay--;
 			currentDisplay = currentDisplay % maxDisplays;
@@ -143,15 +146,18 @@ task pre_auton(){
 			currentMode = currentMode % maxModes;
 			switch(currentMode){
 				case SensorMode:
+					maxDisplays = maxSensorDisplays;
 					displayLCDCenteredString(0, "|Sensors|");
 					wait1Msec(500);
 					break;
 				case VarsMode:
+					maxDisplays = maxVarsDisplays;
 					displayLCDCenteredString(0, "|Global Vars|");
 					wait1Msec(500);
 					break;
 				case AutonMode:
-					displayLCDCneteredString(0, "|Auton Selector|");
+					maxDisplays = maxAutonDisplays;
+					displayLCDCenteredString(0, "|Auton Selector|");
 					wait1Msec(500);
 					break;
 				default:
