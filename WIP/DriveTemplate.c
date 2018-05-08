@@ -28,7 +28,7 @@ static float  pidRequestedValueRB;
 - Set default drive type
 - Allow drive toggling with 5U + 7U
 */
-static bool isTankDrive = true;
+static bool isTankDrive = false;
 static bool allowToggle = true;
 
 /*
@@ -37,14 +37,12 @@ When buttons 5U and 7U are pressed at the same time, the drive can shift from ta
 task toggleDrive(){
 	int left, right;
 	while(true){
-		motor[LB] = vexRT[Ch3];
-		motor[RB] = vexRT[Ch2];
 		if (allowToggle && vexRT[Btn5U] == 1 && vexRT[Btn7U] == 1){
 			isTankDrive = !isTankDrive;
 		}
 		if(isTankDrive){
 			motor[LB] = vexRT[Ch3];
-			motor[RB] = vexRT[Ch3];
+			motor[RB] = vexRT[Ch2];
 			} else {
 			left = vexRT[Ch3] + vexRT[Ch1];
 			right = vexRT[Ch3] - vexRT[Ch1];
@@ -97,7 +95,8 @@ task encoderPIDController()
 /*
 Pre-auton includes has an LCD menu that allows
 */
-task pre_auton(){
+
+void lcdProgram(){
 	bLCDBacklight = true;
 
 	const short leftButton = 1;
@@ -124,7 +123,8 @@ task pre_auton(){
 	clearLCDLine(0);
 	clearLCDLine(1);
 
-	while (bIfiRobotDisabled == 1) {
+	while (true){
+	//while (bIfiRobotDisabled == 1) {
 		select = false;
 
 		if (nLCDButtons == leftButton){
@@ -168,10 +168,13 @@ task pre_auton(){
 			case SensorMode:
 				switch(currentDisplay){
 					case 0:
+						displayLCDCenteredString(0, "Sensor 1");
 						break;
 					case 1:
+						displayLCDCenteredString(0, "Sensor 2");
 						break;
 					case 2:
+						displayLCDCenteredString(0, "Sensor 3");
 						break;
 					case 3:
 						break;
@@ -216,6 +219,10 @@ task pre_auton(){
 	bLCDBacklight = false;
 }
 
+task pre_auton(){
+	lcdProgram();
+}
+
 task autonomous(){
 
 }
@@ -228,6 +235,6 @@ task main(){
 	SensorValue[leftEncoder] = 0;
 
 	while(true){
-
+		lcdProgram();
 	}
 }
