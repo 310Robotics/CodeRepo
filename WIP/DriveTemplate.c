@@ -141,6 +141,8 @@ void lcdProgram(){
 			select = true;
 		}
 		if (nLCDButtons == leftRightButtons){
+			clearLCDLine(0);
+			clearLCDLine(1);
 			currentDisplay = 0;
 			currentMode++;
 			currentMode = currentMode % maxModes;
@@ -168,17 +170,27 @@ void lcdProgram(){
 			case SensorMode:
 				switch(currentDisplay){
 					case 0:
-						displayLCDCenteredString(0, "Sensor 1");
+						string batteryLevel = nAvgBatteryLevel;
+						displayLCDCenteredString(0, "Battery Voltage");
+						displayLCDCenteredString(1, batteryLevel);
 						break;
 					case 1:
-						displayLCDCenteredString(0, "Sensor 2");
+						string le = SensorValue[leftEncoder];
+						displayLCDCenteredString(0, "Encoder LB");
+						displayLCDCenteredString(1, le);
 						break;
 					case 2:
-						displayLCDCenteredString(0, "Sensor 3");
+						string re = SensorValue(rightEncoder);
+						displayLCDCenteredString(0, "Encoder RB");
+						displayLCDCenteredString(1, re);
 						break;
 					case 3:
+						displayLCDCenteredString(0, "Sensor 4");
+						displayLCDCenteredString(1, "empty");
 						break;
 					default:
+						displayLCDCenteredString(0, "error");
+						displayLCDCenteredString(1, "error");
 						break;
 				}
 				break;
@@ -228,8 +240,8 @@ task autonomous(){
 }
 
 task main(){
-	startTask(encoderPIDController);
-	startTask(toggleDrive);
+	//startTask(encoderPIDController);
+	//startTask(toggleDrive);
 
 	SensorValue[rightEncoder] = 0;
 	SensorValue[leftEncoder] = 0;
