@@ -102,7 +102,7 @@ void lcdProgram(){
 	const short leftButton = 1;
 	const short centerButton = 2;
 	const short rightButton = 4;
-	const short leftRightButtons = 6;
+	const short leftRightButtons = 5;
 	bool select = false; //changed to true every time center button is pressed
 
 	int maxSensorDisplays = 4;
@@ -112,7 +112,6 @@ void lcdProgram(){
 	int currentDisplay = 0;
 
 
-	int maxModes = 2;
 	int currentMode = 0;
 	const short SensorMode = 0;
 	const short VarsMode = 1;
@@ -140,13 +139,15 @@ void lcdProgram(){
 		if (nLCDButtons == centerButton){
 			select = true;
 		}
-		//use something instead of modulus
+
 		if (nLCDButtons == leftRightButtons){
 			clearLCDLine(0);
 			clearLCDLine(1);
 			currentDisplay = 0;
 			currentMode++;
-			currentMode = currentMode % maxModes; // change this
+			if (currentMode > 2){
+				currentMode = 0;
+			}
 			switch(currentMode){
 				case SensorMode:
 					maxDisplays = maxSensorDisplays;
