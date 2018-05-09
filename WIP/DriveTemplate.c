@@ -95,7 +95,7 @@ task encoderPIDController()
 /*
 Pre-auton includes has an LCD menu that allows
 */
-
+static int selectedAuton = 0;
 void lcdProgram(){
 	bLCDBacklight = true;
 
@@ -129,23 +129,24 @@ void lcdProgram(){
 
 		if (nLCDButtons == leftButton){
 			currentDisplay--;
-			currentDisplay = currentDisplay % maxDisplays;
+			//currentDisplay = currentDisplay % maxDisplays;
 			wait1Msec(250);
 		}
 		if (nLCDButtons == rightButton){
 			currentDisplay++;
-			currentDisplay = currentDisplay % maxDisplays;
+			//currentDisplay = currentDisplay % maxDisplays;
 			wait1Msec(250);
 		}
 		if (nLCDButtons == centerButton){
 			select = true;
 		}
+		//use something instead of modulus
 		if (nLCDButtons == leftRightButtons){
 			clearLCDLine(0);
 			clearLCDLine(1);
 			currentDisplay = 0;
 			currentMode++;
-			currentMode = currentMode % maxModes;
+			currentMode = currentMode % maxModes; // change this
 			switch(currentMode){
 				case SensorMode:
 					maxDisplays = maxSensorDisplays;
@@ -165,6 +166,12 @@ void lcdProgram(){
 				default:
 					//do nothing
 			}
+		}
+		if (currentDisplay < 0){
+			currentDisplay = 3;
+		}
+		if (currentDisplay > 3){
+			currentDisplay = 0;
 		}
 		switch(currentMode){
 			case SensorMode:
@@ -189,36 +196,46 @@ void lcdProgram(){
 						displayLCDCenteredString(1, "empty");
 						break;
 					default:
-						displayLCDCenteredString(0, "error");
-						displayLCDCenteredString(1, "error");
+						displayLCDCenteredString(0, "default case");
 						break;
 				}
 				break;
 			case VarsMode:
 				switch(currentDisplay){
+					//If select is true, change values
 					case 0:
+						displayLCDCenteredString(0, "var 1");
 						break;
 					case 1:
+						displayLCDCenteredString(0, "var 2");
 						break;
 					case 2:
+						displayLCDCenteredString(0, "var 3");
 						break;
 					case 3:
+						displayLCDCenteredString(0, "var 4");
 						break;
 					default:
+						displayLCDCenteredString(0, "default case");
 						break;
 				}
 				break;
 			case AutonMode:
 				switch(currentDisplay){
 					case 0:
+						displayLCDCenteredString(0, "Auton 1");
 						break;
 					case 1:
+						displayLCDCenteredString(0, "Auton 2");
 						break;
 					case 2:
+						displayLCDCenteredString(0, "Auton 3");
 						break;
 					case 3:
+						displayLCDCenteredString(0, "Auton 4");
 						break;
 					default:
+						displayLCDCenteredString(0, "default case");
 						break;
 				}
 				break;
