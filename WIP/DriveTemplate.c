@@ -55,7 +55,7 @@ task toggleDrive(){
 - Maximum motor power
 - Boolean for disabling and enabling control loop
 */
-static float  pid_Kp = .7;
+static float  pidEncoder_Kp = .7;
 static float  pidRequestedValueLB;
 static float  pidRequestedValueRB;
 static int maxEncoderPIDControllerPower = 70;
@@ -81,8 +81,8 @@ task encoderPIDController()
 			pidErrorRight = pidRequestedValueRB - SensorValue[rightEncoder];
 
 			//drive power = proportional constant * error
-			pidDriveLeft = (pid_Kp * pidErrorLeft);
-			pidDriveRight = (pid_Kp * pidErrorRight);
+			pidDriveLeft = (pidEncoder_Kp * pidErrorLeft);
+			pidDriveRight = (pidEncoder_Kp * pidErrorRight);
 
 			//limit drive power
 			if( pidDriveLeft > maxEncoderPIDControllerPower )
@@ -195,17 +195,17 @@ void lcdProgram(){
 			case SensorMode:
 				maxDisplays = maxSensorDisplays;
 				displayLCDCenteredString(0, "|Sensors|");
-				wait1Msec(500);
+				wait1Msec(1000);
 				break;
 			case VarsMode:
 				maxDisplays = maxVarsDisplays;
 				displayLCDCenteredString(0, "|Global Vars|");
-				wait1Msec(500);
+				wait1Msec(1000);
 				break;
 			case AutonMode:
 				maxDisplays = maxAutonDisplays;
 				displayLCDCenteredString(0, "|Auton Selector|");
-				wait1Msec(500);
+				wait1Msec(1000);
 				break;
 			default:
 				//do nothing
@@ -229,11 +229,17 @@ void lcdProgram(){
 				string le = SensorValue[leftEncoder];
 				displayLCDCenteredString(0, "Encoder LB");
 				displayLCDCenteredString(1, le);
+				if (select){
+					SensorValue[leftEncoder] = 0;
+				}
 				break;
 			case 2:
 				string re = SensorValue(rightEncoder);
 				displayLCDCenteredString(0, "Encoder RB");
 				displayLCDCenteredString(1, re);
+				if (select){
+					SensorValue[rightEncoder] = 0;
+				}
 				break;
 			case 3:
 				displayLCDCenteredString(0, "Sensor 4");
@@ -248,13 +254,51 @@ void lcdProgram(){
 			switch(currentDisplay){
 				//If select is true, change values
 			case 0:
-				displayLCDCenteredString(0, "var 1");
+				displayLCDCenteredString(0, "isTankDrive");
+				if (isTankDrive){
+					displayLCDCenteredString(1, "true");
+				} else {
+					displayLCDCenteredString(1, "false");
+				}
+				if (select){
+					isTankDrive = !isTankDrive;
+				}
 				break;
 			case 1:
-				displayLCDCenteredString(0, "var 2");
+				displayLCDCenteredString(0, "allowDriveToggle");
+				if (allowDriveToggle){
+					displayLCDCenteredString(1, "true");
+				} else {
+					displayLCDCenteredString(1, "false");
+				}
+				if (select){
+					allowDriveToggle = !allowDriveToggle;
+				}
 				break;
 			case 2:
-				displayLCDCenteredString(0, "var 3");
+				String ekp = pidEncoder_Kp;
+				displayLCDCenteredString(0, "pidEncoder_Kp");
+				displayLCDCenteredString(1, ekp)
+				if (select){
+					while(select){
+						displayLCDCenteredString(0, "[pidEncoder_Kp]");
+						if (nLCDButtons == 2){
+							select = false;
+						}
+						if (nLCDButtons == 1){
+							pidEncoder_Kp += 0.1;
+						}
+						if (nLCDButtons == 4){
+							pidEncoder_Kp -= 0.1;
+						}
+						if (pidEncoder_Kp < 0.1){
+							pidEncoder_Kp = 2.5;
+						}
+						if (pidEncoder_Kp > 2.5){
+							pidEncoder_Kp = 0.1;
+						}
+					}
+				}
 				break;
 			case 3:
 				displayLCDCenteredString(0, "var 4");
@@ -272,9 +316,10 @@ void lcdProgram(){
 				}
 				if (selectedAuton == 1){
 					displayLCDCenteredString(0, "[Auton 1]");
-					} else {
+				} else {
 					displayLCDCenteredString(0, "Auton 1");
 				}
+				diplayLCDCenteredString(1, "Description");
 				break;
 			case 1:
 				if (select){
@@ -282,9 +327,10 @@ void lcdProgram(){
 				}
 				if (selectedAuton == 2){
 					displayLCDCenteredString(0, "[Auton 2]");
-					} else {
+				} else {
 					displayLCDCenteredString(0, "Auton 2");
-				};
+				}
+				diplayLCDCenteredString(1, "Description");
 				break;
 			case 2:
 				if (select){
@@ -292,9 +338,10 @@ void lcdProgram(){
 				}
 				if (selectedAuton == 3){
 					displayLCDCenteredString(0, "[Auton 3]");
-					} else {
+				} else {
 					displayLCDCenteredString(0, "Auton 3");
 				}
+				diplayLCDCenteredString(1, "Description");
 				break;
 			case 3:
 				if (select){
@@ -302,9 +349,10 @@ void lcdProgram(){
 				}
 				if (selectedAuton == 4){
 					displayLCDCenteredString(0, "[Auton 4]");
-					} else {
+				} else {
 					displayLCDCenteredString(0, "Auton 4");
 				}
+				diplayLCDCenteredString(1, "Description");
 				break;
 			case 4:
 				if (select){
@@ -312,7 +360,7 @@ void lcdProgram(){
 				}
 				if (selectedAuton == 4){
 					displayLCDCenteredString(0, "[No Auton]");
-					} else {
+				} else {
 					displayLCDCenteredString(0, "No Auton");
 				}
 				break;
