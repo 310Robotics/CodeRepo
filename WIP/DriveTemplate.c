@@ -55,10 +55,10 @@ task toggleDrive(){
 - Maximum motor power
 - Boolean for disabling and enabling control loop
 */
-static float  pidEncoder_Kp = .7;
+static float  pidEncoder_Kp = 1.3;
 static float  pidRequestedValueLB;
 static float  pidRequestedValueRB;
-static int maxEncoderPIDControllerPower = 70;
+static int maxEncoderPIDControllerPower = 127;
 static bool enableEncoderPIDController = true;
 /*
 ============================================================================================================================
@@ -69,6 +69,8 @@ You can set desired encoder values using
 task encoderPIDController()
 {
 	//intialize error and drive power vars
+	int currentLeftEncoder;
+	int currentRightEncoder;
 	float pidErrorLeft;
 	float pidErrorRight;
 	float pidDriveLeft;
@@ -76,23 +78,25 @@ task encoderPIDController()
 
 	while(true){
 		if (enableEncoderPIDController){
+			currentLeftEncoder = -SensorValue[leftEncoder]
+			currentRightEncoder = SensorValue[rightEncoder]
 			//error = desired value - current value
-			pidErrorLeft = pidRequestedValueLB - SensorValue[leftEncoder];
-			pidErrorRight = pidRequestedValueRB - SensorValue[rightEncoder];
+			pidErrorLeft = pidRequestedValueLB - currentLeftEncoder;
+			pidErrorRight = pidRequestedValueRB - currentRightEncoder;
 
 			//drive power = proportional constant * error
 			pidDriveLeft = (pidEncoder_Kp * pidErrorLeft);
 			pidDriveRight = (pidEncoder_Kp * pidErrorRight);
 
 			//limit drive power
-			if( pidDriveLeft > maxEncoderPIDControllerPower )
-				pidDriveLeft = maxEncoderPIDControllerPower;
-			if( pidDriveLeft < (-maxEncoderPIDControllerPower) )
-				pidDriveLeft = (-maxEncoderPIDControllerPower);
-			if( pidDriveRight > maxEncoderPIDControllerPower )
-				pidDriveRight = maxEncoderPIDControllerPower;
-			if( pidDriveRight < (-maxEncoderPIDControllerPower) )
-				pidDriveRight = (-maxEncoderPIDControllerPower);
+			if( pidDriveLeft > 127 )
+				pidDriveLeft = 127;
+			if( pidDriveLeft < (-127) )
+				pidDriveLeft = (-127);
+			if( pidDriveRight > 127)
+				pidDriveRight = 127;
+			if( pidDriveRight < (-127) )
+				pidDriveRight = (-127);
 
 			//run motors at calculated power
 			motor[LB] = pidDriveLeft;
@@ -113,13 +117,13 @@ static int ticksPerInch = 29;
 Move robot forward
 ============================================================================================================================
 */
-void moveForward(int tenthsOfInch, int power){
+void moveForward(int tenthsOfInch){
 	//YO YOU SHOULD REALLY TEST THIS
 	int tickGoal = (ticksPerInch * tenthsOfInch) / 10;
 	SensorValue[leftEncoder] = 0;
 	SensorValue[rightEncoder] = 0;
 	pidRequestedValueLB = tickGoal;
-	pidRequestedValueRB = -tickGoal;
+	pidRequestedValueRB = tickGoal;
 }
 /*
 ============================================================================================================================
@@ -257,46 +261,34 @@ void lcdProgram(){
 				displayLCDCenteredString(0, "isTankDrive");
 				if (isTankDrive){
 					displayLCDCenteredString(1, "true");
-				} else {
+					} else {
 					displayLCDCenteredString(1, "false");
 				}
 				if (select){
 					isTankDrive = !isTankDrive;
+					wait1Msec(250);
 				}
 				break;
 			case 1:
 				displayLCDCenteredString(0, "allowDriveToggle");
 				if (allowDriveToggle){
 					displayLCDCenteredString(1, "true");
-				} else {
+					} else {
 					displayLCDCenteredString(1, "false");
 				}
 				if (select){
 					allowDriveToggle = !allowDriveToggle;
+					wait1Msec(250);
 				}
 				break;
 			case 2:
-				String ekp = pidEncoder_Kp;
+				string ekp = pidEncoder_Kp;
 				displayLCDCenteredString(0, "pidEncoder_Kp");
-				displayLCDCenteredString(1, ekp)
+				displayLCDCenteredString(1, ekp);
 				if (select){
-					while(select){
-						displayLCDCenteredString(0, "[pidEncoder_Kp]");
-						if (nLCDButtons == 2){
-							select = false;
-						}
-						if (nLCDButtons == 1){
-							pidEncoder_Kp += 0.1;
-						}
-						if (nLCDButtons == 4){
-							pidEncoder_Kp -= 0.1;
-						}
-						if (pidEncoder_Kp < 0.1){
-							pidEncoder_Kp = 2.5;
-						}
-						if (pidEncoder_Kp > 2.5){
-							pidEncoder_Kp = 0.1;
-						}
+					pidEncoder_Kp += 0.1;
+					if (pidEncoder_Kp > 2.5){
+						pidEncoder_Kp = 0.1;
 					}
 				}
 				break;
@@ -316,10 +308,10 @@ void lcdProgram(){
 				}
 				if (selectedAuton == 1){
 					displayLCDCenteredString(0, "[Auton 1]");
-				} else {
+					} else {
 					displayLCDCenteredString(0, "Auton 1");
 				}
-				diplayLCDCenteredString(1, "Description");
+				displayLCDCenteredString(1, "Description");
 				break;
 			case 1:
 				if (select){
@@ -327,10 +319,10 @@ void lcdProgram(){
 				}
 				if (selectedAuton == 2){
 					displayLCDCenteredString(0, "[Auton 2]");
-				} else {
+					} else {
 					displayLCDCenteredString(0, "Auton 2");
 				}
-				diplayLCDCenteredString(1, "Description");
+				displayLCDCenteredString(1, "Description");
 				break;
 			case 2:
 				if (select){
@@ -338,10 +330,10 @@ void lcdProgram(){
 				}
 				if (selectedAuton == 3){
 					displayLCDCenteredString(0, "[Auton 3]");
-				} else {
+					} else {
 					displayLCDCenteredString(0, "Auton 3");
 				}
-				diplayLCDCenteredString(1, "Description");
+				displayLCDCenteredString(1, "Description");
 				break;
 			case 3:
 				if (select){
@@ -349,10 +341,10 @@ void lcdProgram(){
 				}
 				if (selectedAuton == 4){
 					displayLCDCenteredString(0, "[Auton 4]");
-				} else {
+					} else {
 					displayLCDCenteredString(0, "Auton 4");
 				}
-				diplayLCDCenteredString(1, "Description");
+				displayLCDCenteredString(1, "Description");
 				break;
 			case 4:
 				if (select){
@@ -360,7 +352,7 @@ void lcdProgram(){
 				}
 				if (selectedAuton == 4){
 					displayLCDCenteredString(0, "[No Auton]");
-				} else {
+					} else {
 					displayLCDCenteredString(0, "No Auton");
 				}
 				break;
@@ -421,13 +413,16 @@ Main Task
 ============================================================================================================================
 */
 task main(){
-	//startTask(encoderPIDController);
+	startTask(encoderPIDController);
 	//startTask(toggleDrive);
 
 	SensorValue[rightEncoder] = 0;
 	SensorValue[leftEncoder] = 0;
-
+	moveForward(20)
+	//pidRequestedValueLB = 100;
+	//pidRequestedValueRB = 100
 	while(true){
-		lcdProgram();
+		//lcdProgram();
+
 	}
 }
