@@ -155,18 +155,22 @@ void moveForward(int tenthsOfInch){
 	pidRequestedValueRB = tickGoal;
 }
 //- Set ticks per 90 degrees on wheel
-static int ticksPer90Deg = 0;
+static int ticksPerDeg = 0;
 /*
 ============================================================================================================================
 Rotate robot
 ============================================================================================================================
 + http://www.robotc.net/wikiarchive/Tutorials/Arduino_Projects/Mobile_Robotics/VEX/Using_encoders_to_make_turns
 */
-void rotateRight(int degrees, int power){
-
+void rotateRight(int degrees){
+	int tickGoal = ticksPerDeg * degrees;
+	pidRequestedValueLB = -tickGoal;
+	pidRequestedValueRB = tickGoal;
 }
-void rotateLeft(int degrees, int power){
-
+void rotateLeft(int degrees){
+	int tickGoal = ticksPerDeg * degrees;
+	pidRequestedValueLB = tickGoal;
+	pidRequestedValueRB = -tickGoal;
 }
 
 
