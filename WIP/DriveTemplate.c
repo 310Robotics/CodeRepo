@@ -56,10 +56,13 @@ task toggleDrive(){
 - Boolean for disabling and enabling control loop
 */
 static float  pidEncoder_Kp = 1.3;
+static float	pidEncoder_Ki = 0.03;
+static int pidEncoderIntegrationLimit = 50;
 static float  pidRequestedValueLB;
 static float  pidRequestedValueRB;
 static int maxEncoderPIDControllerPower = 127;
 static bool enableEncoderPIDController = true;
+static bool enableEncoderPIDIntegration = true;
 /*
 ============================================================================================================================
 Proportional gain controller for drive motors.
@@ -73,30 +76,49 @@ task encoderPIDController()
 	int currentRightEncoder;
 	float pidErrorLeft;
 	float pidErrorRight;
+	float pidIntegralLeft;
+	float pidIntegralRight;
 	float pidDriveLeft;
 	float pidDriveRight;
 
 	while(true){
 		if (enableEncoderPIDController){
-			currentLeftEncoder = -SensorValue[leftEncoder]
-			currentRightEncoder = SensorValue[rightEncoder]
+			currentLeftEncoder = -SensorValue[leftEncoder];
+			currentRightEncoder = SensorValue[rightEncoder];
 			//error = desired value - current value
 			pidErrorLeft = pidRequestedValueLB - currentLeftEncoder;
 			pidErrorRight = pidRequestedValueRB - currentRightEncoder;
 
-			//drive power = proportional constant * error
+			//proportional gain = proportional constant * error
 			pidDriveLeft = (pidEncoder_Kp * pidErrorLeft);
 			pidDriveRight = (pidEncoder_Kp * pidErrorRight);
 
+			//integrate error
+			if (enableEncoderPIDIntegration){
+				if (fabs(pidErrorLeft) < pidEncoderIntegrationLimit){
+					pidIntegralLeft += pidErrorLeft;
+				}
+				if (fabs(pidErrorRight) < pidEncoderIntegrationLimit){
+					pidIntegralRight += pidErrorRight;
+				}
+			} else {
+				pidIntegralLeft = 0;
+				pidIntegralRight = 0;
+			}
+
+			//add integrated error multiplied by integral gain constant to drive
+			pidDriveLeft += (pidEncoder_Ki * pidIntegralLeft);
+			pidDriveRight += (pidEncoder_Ki * pidIntegralRight);
+
 			//limit drive power
-			if( pidDriveLeft > 127 )
-				pidDriveLeft = 127;
-			if( pidDriveLeft < (-127) )
-				pidDriveLeft = (-127);
-			if( pidDriveRight > 127)
-				pidDriveRight = 127;
-			if( pidDriveRight < (-127) )
-				pidDriveRight = (-127);
+			if( pidDriveLeft > maxEncoderPIDControllerPower )
+				pidDriveLeft = maxEncoderPIDControllerPower;
+			if( pidDriveLeft < (-maxEncoderPIDControllerPower) )
+				pidDriveLeft = (-maxEncoderPIDControllerPower);
+			if( pidDriveRight > maxEncoderPIDControllerPower)
+				pidDriveRight = maxEncoderPIDControllerPower;
+			if( pidDriveRight < (-maxEncoderPIDControllerPower) )
+				pidDriveRight = (-maxEncoderPIDControllerPower);
 
 			//run motors at calculated power
 			motor[LB] = pidDriveLeft;
@@ -104,14 +126,21 @@ task encoderPIDController()
 
 			//don't hog CPU
 			wait1Msec( 25 );
+		} else {
+			pidErrorLeft = 0;
+			pidErrorRight = 0;
+			pidIntegralLeft = 0;
+			pidIntegralRight = 0;
+			pidDriveLeft = 0;
+			pidDriveRight = 0;
 		}
 	}
 }
 
-/*
-- Set ticks per inch on wheel
-*/
+
+//- Set ticks per inch on wheel
 static int ticksPerInch = 29;
+
 /*
 ============================================================================================================================
 Move robot forward
@@ -125,20 +154,25 @@ void moveForward(int tenthsOfInch){
 	pidRequestedValueLB = tickGoal;
 	pidRequestedValueRB = tickGoal;
 }
+//- Set ticks per 90 degrees on wheel
+static int ticksPer90Deg = 0;
 /*
 ============================================================================================================================
-Turn robot
+Rotate robot
 ============================================================================================================================
 + http://www.robotc.net/wikiarchive/Tutorials/Arduino_Projects/Mobile_Robotics/VEX/Using_encoders_to_make_turns
 */
-void rotate(int degrees, int power){
+void rotateRight(int degrees, int power){
+
+}
+void rotateLeft(int degrees, int power){
 
 }
 
-/*
-- Select an auton method
-*/
+
+//- Select an auton method
 static int selectedAuton = 1;
+
 /*
 ============================================================================================================================
 LCD program method
@@ -175,12 +209,10 @@ void lcdProgram(){
 
 		if (nLCDButtons == leftButton){
 			currentDisplay--;
-			//currentDisplay = currentDisplay % maxDisplays;
 			wait1Msec(250);
 		}
 		if (nLCDButtons == rightButton){
 			currentDisplay++;
-			//currentDisplay = currentDisplay % maxDisplays;
 			wait1Msec(250);
 		}
 		if (nLCDButtons == centerButton){
@@ -212,7 +244,6 @@ void lcdProgram(){
 				wait1Msec(1000);
 				break;
 			default:
-				//do nothing
 			}
 		}
 		if (currentDisplay < 0){
@@ -284,12 +315,14 @@ void lcdProgram(){
 			case 2:
 				string ekp = pidEncoder_Kp;
 				displayLCDCenteredString(0, "pidEncoder_Kp");
-				displayLCDCenteredString(1, ekp);
 				if (select){
 					pidEncoder_Kp += 0.1;
+					displayLCDCenteredString(1, ekp);
 					if (pidEncoder_Kp > 2.5){
 						pidEncoder_Kp = 0.1;
 					}
+				} else {
+					displayLCDCenteredString(1, ekp);
 				}
 				break;
 			case 3:
@@ -350,7 +383,7 @@ void lcdProgram(){
 				if (select){
 					selectedAuton = 5;
 				}
-				if (selectedAuton == 4){
+				if (selectedAuton == 5){
 					displayLCDCenteredString(0, "[No Auton]");
 					} else {
 					displayLCDCenteredString(0, "No Auton");
@@ -370,9 +403,16 @@ void lcdProgram(){
 	bLCDBacklight = false;
 }
 
+
+/*
+============================================================================================================================
+Pre-auton Task
+============================================================================================================================
+*/
 task pre_auton(){
 	lcdProgram();
 }
+
 /*
 ============================================================================================================================
 Auton methods
@@ -418,7 +458,7 @@ task main(){
 
 	SensorValue[rightEncoder] = 0;
 	SensorValue[leftEncoder] = 0;
-	moveForward(20)
+	moveForward(20);
 	//pidRequestedValueLB = 100;
 	//pidRequestedValueRB = 100
 	while(true){
