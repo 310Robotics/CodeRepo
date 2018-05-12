@@ -55,14 +55,14 @@ task toggleDrive(){
 - Maximum motor power
 - Boolean for disabling and enabling control loop
 */
-static float  pidEncoder_Kp = 1.3;
-static float	pidEncoder_Ki = 0.03;
+static float  pidEncoder_Kp = 1.2;
+static float	pidEncoder_Ki = 0.04;
 static int pidEncoderIntegrationLimit = 50;
 static float  pidRequestedValueLB;
 static float  pidRequestedValueRB;
 static int maxEncoderPIDControllerPower = 127;
 static bool enableEncoderPIDController = true;
-static bool enableEncoderPIDIntegration = true;
+static bool enableEncoderPIDIntegration = false;
 /*
 ============================================================================================================================
 Proportional gain controller for drive motors.
@@ -457,16 +457,25 @@ Main Task
 ============================================================================================================================
 */
 task main(){
-	startTask(encoderPIDController);
+	//startTask(encoderPIDController);
 	//startTask(toggleDrive);
 
 	SensorValue[rightEncoder] = 0;
 	SensorValue[leftEncoder] = 0;
-	moveForward(20);
-	//pidRequestedValueLB = 100;
-	//pidRequestedValueRB = 100
+	//moveForward(20);
+	pidRequestedValueLB = 100;
+	pidRequestedValueRB = 100
+	
 	while(true){
-		//lcdProgram();
+		/*
+		//wait1Msec(10000);
+		datalogDataGroupStart();
+		datalogAddValue( 0, SensorValue[rightEncoder] );
+	 	datalogAddValue( 1, SensorValue[leftEncoder] );
+		//wait1Msec(5000);
+		datalogDataGroupEnd();
+		*/
+		lcdProgram();
 
 	}
 }
