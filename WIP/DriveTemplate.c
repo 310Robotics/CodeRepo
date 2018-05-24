@@ -55,7 +55,7 @@ task toggleDrive(){
 - Maximum motor power
 - Boolean for disabling and enabling control loop
 */
-static float  pidEncoder_Kp = 0.6;
+static float  pidEncoder_Kp = 0.59525;
 static float	pidEncoder_Ki = 0.03;
 static int pidEncoderIntegrationLimit = 100;
 static float  pidRequestedValueLB;
@@ -80,7 +80,14 @@ task encoderPIDController()
 	float pidIntegralRight;
 	float pidDriveLeft;
 	float pidDriveRight;
-
+	
+	/*
+	while(encoder > 100)
+		move motor back
+	while(encoder < 100)
+		move back
+	*/
+	
 	while(true){
 		if (enableEncoderPIDController){
 			currentLeftEncoder = -SensorValue[leftEncoder];
@@ -457,14 +464,14 @@ Main Task
 ============================================================================================================================
 */
 task main(){
-	//startTask(encoderPIDController);
-	startTask(toggleDrive);
+	startTask(encoderPIDController);
+	//startTask(toggleDrive);
 
 	SensorValue[rightEncoder] = 0;
 	SensorValue[leftEncoder] = 0;
 	//moveForward(20);
 	pidRequestedValueLB = 100;
-	pidRequestedValueRB = 100
+	pidRequestedValueRB = 100;
 
 	while(true){
 		datalogDataGroupStart();
