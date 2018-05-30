@@ -57,12 +57,14 @@ task toggleDrive(){
 */
 static float  pidEncoder_Kp = 0.59525;
 static float	pidEncoder_Ki = 0.03;
+static float pidEncoder_Kd = 0.5;
 static int pidEncoderIntegrationLimit = 100;
 static float  pidRequestedValueLB;
 static float  pidRequestedValueRB;
-static int maxEncoderPIDControllerPower = 66;
+static int maxEncoderPIDControllerPower = 127;
 static bool enableEncoderPIDController = true;
 static bool enableEncoderPIDIntegration = true;
+static bool enableEncoderPIDDerivative = false;
 /*
 ============================================================================================================================
 Proportional gain controller for drive motors.
@@ -74,10 +76,14 @@ task encoderPIDController()
 	//intialize error and drive power vars
 	int currentLeftEncoder;
 	int currentRightEncoder;
+	float lastErrorLeft;
+	float lastErrorRight;
 	float pidErrorLeft;
 	float pidErrorRight;
 	float pidIntegralLeft;
 	float pidIntegralRight;
+	float pidDerivativeLeft;
+	float pidDerivativeRight;
 	float pidDriveLeft;
 	float pidDriveRight;
 	
@@ -108,14 +114,23 @@ task encoderPIDController()
 				if (fabs(pidErrorRight) < pidEncoderIntegrationLimit){
 					pidIntegralRight += pidErrorRight;
 				}
+				//add integrated error multiplied by integral gain constant to drive
+				pidDriveLeft += (pidEncoder_Ki * pidIntegralLeft);
+				pidDriveRight += (pidEncoder_Ki * pidIntegralRight);
 			} else {
 				pidIntegralLeft = 0;
 				pidIntegralRight = 0;
 			}
-
-			//add integrated error multiplied by integral gain constant to drive
-			pidDriveLeft += (pidEncoder_Ki * pidIntegralLeft);
-			pidDriveRight += (pidEncoder_Ki * pidIntegralRight);
+			
+			//calculate and apply derivative
+			if (enableEncoderPIDDerivative){
+				
+				//set last error
+				lastErrorLeft = pidErrorLeft;
+				lastErrorRight = pidErrorRight;
+			} else {
+				
+			}
 
 			//limit drive power
 			if( pidDriveLeft > maxEncoderPIDControllerPower )
